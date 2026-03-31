@@ -9,8 +9,10 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- SPLINE VIEWER SCRIPT -->
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.73/build/spline-viewer.js"></script>
+    
     <style>
-        /* Custom animations to replace the React animate-in classes */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -21,6 +23,11 @@
         }
         .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
         .animate-zoom-in { animation: zoomIn 0.6s ease-out forwards; }
+        
+        /* Ensure Spline logo is hidden if possible, and remove background color */
+        spline-viewer {
+            --spline-viewer-bg-color: transparent;
+        }
     </style>
 </head>
 <body class="bg-[#030308] font-sans text-slate-300 relative selection:bg-purple-500/30">
@@ -29,8 +36,10 @@
         <!-- Massive Glowing Aura Background -->
         <div class="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[150%] md:w-[1200px] h-[800px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/40 via-purple-900/20 to-transparent blur-[120px] pointer-events-none z-0 rounded-[100%]"></div>
         
-        <!-- Animated Canvas Background -->
-        <canvas id="bg-canvas" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0 opacity-50"></canvas>
+        <!-- SPLINE VIEWER BACKGROUND (Your custom 3D design) -->
+        <div class="absolute top-0 left-0 w-full h-full pointer-events-none z-0 opacity-70">
+            <spline-viewer url="https://prod.spline.design/uILr2PwSxHtivmIs/scene.splinecode"></spline-viewer>
+        </div>
         
         <!-- Top Navigation Bar -->
         <nav class="border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-20">
@@ -102,7 +111,6 @@
                     <!-- Feedback Section (Hidden initially) -->
                     <div id="feedback-section" class="mt-8 p-5 rounded-xl animate-fade-in backdrop-blur-md hidden">
                         <h4 id="feedback-title" class="text-base font-medium flex items-center mb-2">
-                            <!-- Icon and Text injected by JS -->
                         </h4>
                         <p id="feedback-text" class="text-slate-400 text-sm leading-relaxed">
                             Explanation goes here.
@@ -407,89 +415,6 @@
         updateNav();
         initHome();
         lucide.createIcons(); // Initialize static icons
-
-        // --- Animated Background Logic ---
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-
-        let particlesArray = [];
-        
-        // Resize canvas to fill the screen
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        // Particle Object setup
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 0.5; // Simulate depth (smaller = further away)
-                this.speedX = (Math.random() - 0.5) * this.size * 0.5; // Bigger moves faster
-                this.speedY = (Math.random() - 0.5) * this.size * 0.5;
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-
-                // Bounce off edges
-                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-            }
-            draw() {
-                ctx.fillStyle = 'rgba(167, 139, 250, 0.5)'; // Soft purple
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        // Initialize particles
-        function initParticles() {
-            particlesArray = [];
-            let numberOfParticles = (canvas.height * canvas.width) / 9000; // Density
-            for (let i = 0; i < numberOfParticles; i++) {
-                particlesArray.push(new Particle());
-            }
-        }
-
-        // Connect particles with lines if they are close (Math Engine vibe)
-        function connectParticles() {
-            let opacityValue = 1;
-            for (let a = 0; a < particlesArray.length; a++) {
-                for (let b = a; b < particlesArray.length; b++) {
-                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
-                                 + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
-                    
-                    if (distance < 15000) {
-                        opacityValue = 1 - (distance / 15000);
-                        ctx.strokeStyle = `rgba(139, 92, 246, ${opacityValue * 0.2})`;
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
-                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
-                        ctx.stroke();
-                    }
-                }
-            }
-        }
-
-        // Animation Loop
-        function animateCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
-                particlesArray[i].draw();
-            }
-            connectParticles();
-            requestAnimationFrame(animateCanvas);
-        }
-
-        initParticles();
-        animateCanvas();
 
     </script>
 </body>
