@@ -37,10 +37,8 @@
 </head>
 <body class="bg-[#030308] font-sans text-slate-300 relative selection:bg-purple-500/30">
 
-    <!-- Audio Element (Futuristic Synthwave/Ambient Track) -->
-    <audio id="bg-music" loop preload="auto">
-        <source src="https://cdn.pixabay.com/download/audio/2022/10/25/audio_29ae00fcb6.mp3?filename=abstract-future-bass-162604.mp3" type="audio/mpeg">
-    </audio>
+    <!-- Hidden YouTube Player for Background Music -->
+    <div id="youtube-player" style="display: none; position: absolute;"></div>
 
     <div class="min-h-screen flex flex-col overflow-hidden relative">
         <!-- Massive Glowing Aura Background -->
@@ -188,6 +186,43 @@
 
     <!-- Application Logic -->
     <script>
+        // --- YouTube Audio Integration ---
+        // 1. Load the YouTube IFrame Player API code asynchronously.
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // 2. This function creates an <iframe> (and YouTube player) after the API code downloads.
+        let ytPlayer;
+        let isYtReady = false;
+
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('youtube-player', {
+                height: '0',
+                width: '0',
+                videoId: 'TU3rtJzgCqk', // Your requested track
+                playerVars: {
+                    'autoplay': 0,
+                    'controls': 0,
+                    'loop': 1,
+                    'playlist': 'TU3rtJzgCqk', // Playlist required for looping a single video
+                    'playsinline': 1
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        // 3. The API will call this function when the video player is ready.
+        function onPlayerReady(event) {
+            isYtReady = true;
+            event.target.setVolume(50); // Set default volume (0-100)
+        }
+        // --- End YouTube Integration ---
+
+
         // Data Store
         const quizData = {
             "central-tendencies": {
@@ -238,14 +273,15 @@
 
         // Audio Logic
         function toggleMusic() {
-            const audio = document.getElementById('bg-music');
             const btn = document.getElementById('music-btn');
-            
-            // Adjust volume to be background-appropriate
-            audio.volume = 0.4; 
+
+            if (!isYtReady || !ytPlayer) {
+                console.warn("Audio player is still buffering, please wait a second...");
+                return;
+            }
 
             if (state.isMusicPlaying) {
-                audio.pause();
+                ytPlayer.pauseVideo();
                 state.isMusicPlaying = false;
                 
                 // Update styling back to muted state
@@ -253,7 +289,7 @@
                 btn.classList.remove('bg-indigo-500/20', 'border-indigo-500/50', 'text-indigo-400', 'playing-music');
                 btn.classList.add('bg-white/5', 'border-white/10', 'text-slate-400');
             } else {
-                audio.play().catch(e => console.log("Audio play failed:", e));
+                ytPlayer.playVideo();
                 state.isMusicPlaying = true;
                 
                 // Update styling to active glowing state
